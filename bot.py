@@ -49,10 +49,10 @@ def generate_analyst_brief(israel, ai, world, stocks) -> str:
     1. לבחור בדיוק את 3 הכתבות הכי חשובות ומשמעותיות מכל קטגוריה.
     2. לתרגם אותן לעברית רהוטה, עסקית ומקצועית.
     3. לכתוב "בריף" של שורה-שתיים לכל כתבה שמסביר את השורה התחתונה.
-    4. לצרף את הלינק המקורי לכל כתבה באמצעות Hyperlink או טקסט פשוט ליד הכתבה.
+    4. לצרף את הלינק המקורי לכל כתבה.
 
-    לגבי "מעקב חברות": חפש בחדשות המצורפות אם יש משהו קריטי או דיווח פיננסי על אחת מהחברות הבאות: {COMPANIES}. 
-    אם יש חדשות על חברות אלו, ציין זאת. אם אין שום דבר מעניין או חשוב היום, תכתוב פשוט: "אין דיווחים חריגים הבוקר לחברות במעקב".
+    לגבי "מעקב חברות": חפש בחדשות המצורפות אם יש משהו קריטי או דיווח פיננסי על החברות: {COMPANIES}. 
+    אם יש חדשות, ציין זאת. אם לא, כתוב: "אין דיווחים חריגים הבוקר לחברות במעקב".
 
     המידע הגולמי:
     ישראל: {israel}
@@ -60,35 +60,39 @@ def generate_analyst_brief(israel, ai, world, stocks) -> str:
     אקטואליה עולמית: {world}
     חברות ושוק ההון: {stocks}
 
-    החזר את התשובה בפורמט טקסט מעוצב לטלגרם (השתמש באימוג'יס ובהדגשות), כדוגמת:
-    📰 **בריף בוקר - {date_today}**
-    
-    🇮🇱 **ישראל:**
-    ...
-    🤖 **בינה מלאכותית (AI):**
-    ...
-    🌍 **אקטואליה עולמית:**
-    ...
-    💼 **מעקב חברות ותיק מניות:**
-    ...
+    החזר את התשובה בפורמט טקסט מעוצב לטלגרם.
     """
 
     try:
+        # בדיקה אם המפתח בכלל קיים בגיטהאב
+        if not OPENAI_API_KEY:
+            print("❌ ERROR: OPENAI_API_KEY is missing! Did you add it to GitHub Secrets?")
+            return "שגיאה: חסר מפתח OpenAI ב-Secrets של גיטהאב."
+
         url = "https://api.openai.com/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {OPENAI_API_KEY.strip()}",
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "gpt-4o", # משתמשים במודל החזק ביותר לאיכות תרגום מקסימלית
+            "model": "gpt-4o",
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.3 # טמפרטורה נמוכה כדי שיישאר עובדתי ומדויק
+            "temperature": 0.3
         }
+        
+        print("🧠 Sending request to OpenAI...")
         response = requests.post(url, json=payload, headers=headers)
+        
+        # בדיקה מה הסטטוס שחזר מ-OpenAI
+        if response.status_code != 200:
+            print(f"❌ OpenAI API Error [{response.status_code}]: {response.text}")
+            return f"שגיאה מול השרת של OpenAI. קוד שגיאה: {response.status_code}"
+
         return response.json()['choices'][0]['message']['content'].strip()
+        
     except Exception as e:
-        print(f"❌ Error with OpenAI API: {e}")
-        return "שגיאה ביצירת הבריף. אנא בדוק את לוג המערכת."
+        print(f"❌ Critical Error parsing OpenAI response: {e}")
+        return "שגיאה קריטית ביצירת הבריף. אנא בדוק את לוג המערכת."
 
 def send_to_telegram(text: str):
     """שולח את הבריף המוכן לערוץ הטלגרם שלך"""
