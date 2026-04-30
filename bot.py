@@ -87,10 +87,13 @@ def generate_analyst_brief(israel, ai, world, stocks) -> str:
     """
 
     try:
+       try:
         if not OPENAI_API_KEY:
             return "שגיאה: חסר מפתח OpenAI."
 
-        url = "[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)"
+        # 🔴 זו השורה שצריך לתקן! ודא שאין סוגריים מרובעים או עגולים סביב הלינק
+        url = "https://api.openai.com/v1/chat/completions"
+        
         headers = {"Authorization": f"Bearer {OPENAI_API_KEY.strip()}", "Content-Type": "application/json"}
         payload = {
             "model": "gpt-4o",
