@@ -136,13 +136,17 @@ def generate_analyst_brief(israel, ai, world, stocks) -> str:
 
 def send_to_telegram(text: str):
     """שולח את הבריף המוכן לערוץ הטלגרם שלך"""
-    url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN.strip()}/sendMessage"
+    
+    # 🔴 התיקון כאן: כתובת נקייה לחלוטין ללא שום סוגריים [] או () מוסתרים!
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN.strip()}/sendMessage"
+    
     payload = {
         "chat_id": CHAT_ID.strip(),
         "text": text,
-        "parse_mode": "HTML", # חובה לשלוח כ-HTML כדי למנוע קריסות בטלגרם
-        "disable_web_page_preview": True # מבטל תצוגה מקדימה כדי שההודעה תיראה נקייה
+        "parse_mode": "HTML", 
+        "disable_web_page_preview": True 
     }
+    
     try:
         response = requests.post(url, json=payload)
         if response.status_code == 200:
@@ -151,7 +155,6 @@ def send_to_telegram(text: str):
             print(f"⚠️ Telegram API issue: {response.text}")
     except Exception as e:
         print(f"❌ Error sending to Telegram: {e}")
-
 # =============================================================================
 # ─── MAIN EXECUTION (מנוע ההרצה) ─────────────────────────────────────────────
 # =============================================================================
